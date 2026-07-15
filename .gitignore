@@ -1,0 +1,19 @@
+# Data files
+eot_data/
+eot_handout/
+*.zip
+*.crdownload
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.ipynb_checkpoints/
+.venv/
+venv/
+env/
+
+# Local outputs
+base.csv
+mine.csv
