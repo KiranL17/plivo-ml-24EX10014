@@ -41,4 +41,10 @@ This log documents each experimental run, the corresponding scores (mean respons
 - **Hindi Score**: 252 ms (6 FPs, 7 FNs)
 - **Description**: Profiled the best SVM model to isolate top error cases. Identified that False Positives occur during hold pauses when speakers drop energy/volume pre-pause, mimicking EOT. False Negatives occur during true EOTs when speakers keep their pitch elevated (abrupt termination). Recommended phonetic vowel-lengthening and ASR language models for future enhancement.
 
+### Run 9: Feature Engineering, Selection, & Retraining
+- **English Score**: 430 ms (Cutoff: 5.0%, AUC: 0.966, operating point: t=0.55, d=100ms)
+- **Hindi Score**: 265 ms (Cutoff: 5.0%, AUC: 0.986, operating point: t=0.55, d=100ms)
+- **Description**: Engineered 4 new error-informed features (vowel lengthening ratio, F0 stability, ZCR ratio, spectral flux dynamics ratio) and performed feature selection using Random Forest importances to select the top 80 features. Out-of-Fold cross-validation generalization AUC improved dramatically to **0.7045** for English (up from 0.680) and **0.7703** for Hindi (up from 0.737). Retrained and serialized the final optimized SVC bundle.
+
+
 

@@ -7,7 +7,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 from starter.features import load_wav
-from causal_features import FeatureExtractor
+from improved_features import ImprovedFeatureExtractor
 
 def main():
     ap = argparse.ArgumentParser()
@@ -15,14 +15,17 @@ def main():
     ap.add_argument("--out", default="predictions.csv")
     args = ap.parse_args()
     
-    # 1. Load the pre-trained model pipeline
+    # 1. Load the pre-trained model artifact bundle
     current_dir = os.path.dirname(os.path.abspath(__file__))
     model_path = os.path.join(current_dir, "model.joblib")
     if not os.path.exists(model_path):
         raise FileNotFoundError(f"Trained model not found at {model_path}. Please run train.py first.")
         
-    print(f"Loading model pipeline from {model_path}...")
-    pipeline = joblib.load(model_path)
+    print(f"Loading optimized model bundle from {model_path}...")
+    model_bundle = joblib.load(model_path)
+    
+    pipeline = model_bundle["pipeline"]
+    selected_indices = model_bundle["selected_indices"]
     
     # 2. Read input labels.csv from data_dir
     labels_csv = os.path.join(args.data_dir, "labels.csv")
@@ -32,21 +35,25 @@ def main():
     print(f"Reading labels from {labels_csv}...")
     rows = list(csv.DictReader(open(labels_csv)))
     
-    extractor = FeatureExtractor()
+    # Use the ImprovedFeatureExtractor class to align with 130 features
+    extractor = ImprovedFeatureExtractor()
     
     # 3. Predict for each pause
     cache = {}
     predictions = []
     
-    print("Extracting features and running inference...")
+    print("Extracting improved features and running inference...")
     for r in rows:
         path = os.path.join(args.data_dir, r["audio_file"])
         if path not in cache:
             cache[path] = load_wav(path)
         x, sr = cache[path]
         
-        # Extract 126 modular features (exactly matches training feature length)
-        feat = extractor.extract_features(x, sr, float(r["pause_start"]))
+        # Extract 130 features
+        raw_feat = extractor.extract_features(x, sr, float(r["pause_start"]))
+        
+        # Apply the feature selection mask (selects top 80 features)
+        feat = raw_feat[selected_indices]
         
         # Predict probability for class 1 (EOT)
         prob = pipeline.predict_proba(feat.reshape(1, -1))[0, 1]

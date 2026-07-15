@@ -5,19 +5,20 @@ import joblib
 import warnings
 warnings.filterwarnings('ignore')
 
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import make_pipeline
 
 from starter.features import load_wav
-from causal_features import FeatureExtractor
+from improved_features import ImprovedFeatureExtractor
 
 def main():
     base_dir = os.path.dirname(os.path.abspath(__file__))
     languages = ["english", "hindi"]
     
-    print("===== Starting Model Training Pipeline =====")
-    extractor = FeatureExtractor()
+    print("===== Starting Model Training Pipeline (Optimized) =====")
+    extractor = ImprovedFeatureExtractor()
     
     X_list = []
     y_list = []
@@ -39,7 +40,7 @@ def main():
                 cache[path] = load_wav(path)
             x, sr = cache[path]
             
-            # Extract 126 modular features
+            # Extract 130 features
             feat = extractor.extract_features(x, sr, float(r["pause_start"]))
             X_list.append(feat)
             y_list.append(1 if r["label"] == "eot" else 0)
@@ -47,19 +48,38 @@ def main():
     X = np.array(X_list)
     y = np.array(y_list)
     
-    print(f"\nCombined dataset shape: {X.shape}")
-    print(f"Class counts: EOT = {np.sum(y == 1)}, Hold = {np.sum(y == 0)}")
+    print(f"\nExtracted dataset shape: {X.shape}")
     
-    # Fit the final regularized pipeline
-    print("\nFitting model pipeline (StandardScaler + RBF SVC)...")
+    # Run feature selection via Random Forest
+    print("Selecting top 80 features via Random Forest importances...")
+    rf = RandomForestClassifier(n_estimators=200, random_state=42)
+    rf.fit(X, y)
+    
+    importances = rf.feature_importances_
+    indices = np.argsort(importances)[::-1]
+    
+    n_features_to_select = 80
+    selected_indices = indices[:n_features_to_select]
+    selected_indices = np.sort(selected_indices)
+    selected_names = [extractor.feature_names[i] for i in selected_indices]
+    
+    X_selected = X[:, selected_indices]
+    print(f"Reduced dataset shape: {X_selected.shape}")
+    
+    # Fit the final regularized pipeline on selected features
+    print("Fitting model pipeline (StandardScaler + RBF SVC)...")
     clf = SVC(probability=True, class_weight="balanced", C=1.0, kernel="rbf", random_state=42)
     pipeline = make_pipeline(StandardScaler(), clf)
-    pipeline.fit(X, y)
+    pipeline.fit(X_selected, y)
     
-    # Save the pipeline
+    # Save the pipeline bundle
     model_path = os.path.join(base_dir, "model.joblib")
-    print(f"Saving trained model pipeline to {model_path}...")
-    joblib.dump(pipeline, model_path)
+    print(f"Saving optimized model bundle to {model_path}...")
+    joblib.dump({
+        "pipeline": pipeline,
+        "selected_indices": selected_indices,
+        "feature_names": selected_names
+    }, model_path)
     
     print("\nModel training completed successfully!")
 
