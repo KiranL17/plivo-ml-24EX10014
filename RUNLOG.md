@@ -46,5 +46,12 @@ This log documents each experimental run, the corresponding scores (mean respons
 - **Hindi Score**: 265 ms (Cutoff: 5.0%, AUC: 0.986, operating point: t=0.55, d=100ms)
 - **Description**: Engineered 4 new error-informed features (vowel lengthening ratio, F0 stability, ZCR ratio, spectral flux dynamics ratio) and performed feature selection using Random Forest importances to select the top 80 features. Out-of-Fold cross-validation generalization AUC improved dramatically to **0.7045** for English (up from 0.680) and **0.7703** for Hindi (up from 0.737). Retrained and serialized the final optimized SVC bundle.
 
+### Run 10: Official Scorer Combined Overall Evaluation
+- **English Score**: 430 ms (Cutoff: 5.0%, AUC: 0.966)
+- **Hindi Score**: 265 ms (Cutoff: 5.0%, AUC: 0.986)
+- **Overall Combined Score**: **348 ms** (Cutoff: 5.0%, AUC: 0.976, operating point: t=0.55, d=100ms)
+- **Description**: Ran the official scorer script across English, Hindi, and a combined overall evaluation (496 pauses, 200 turns). Compared to the silence-only baseline overall average delay of **1225 ms**, our model achieves a **71% latency reduction** down to **348 ms** while strictly adhering to the 5% interrupted turns budget.
+
+
 
 
