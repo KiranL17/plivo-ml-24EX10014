@@ -3,113 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>End-of-Turn Detection Project Summary</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <title>End-of-Turn Detection Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-color: #0b0f19;
-            --card-bg: rgba(22, 28, 45, 0.7);
-            --border-color: rgba(255, 255, 255, 0.08);
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --card-border: rgba(255, 255, 255, 0.08);
             --text-primary: #f3f4f6;
             --text-secondary: #9ca3af;
-            --accent-primary: #6366f1; /* Indigo */
-            --accent-secondary: #06b6d4; /* Cyan */
-            --accent-gradient: linear-gradient(135deg, #6366f1 0%, #06b6d4 100%);
+            --accent-primary: #3b82f6;
+            --accent-secondary: #6366f1;
             --success-color: #10b981;
-            --danger-color: #ef4444;
+            --border-color: rgba(255, 255, 255, 0.1);
         }
 
         * {
-            box-sizing: border-box;
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
         }
 
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-family: 'Inter', sans-serif;
             background-color: var(--bg-color);
             color: var(--text-primary);
             line-height: 1.6;
-            padding-bottom: 60px;
-        }
-
-        h1, h2, h3, h4 {
-            font-family: 'Outfit', sans-serif;
-            font-weight: 700;
-        }
-
-        .header {
-            background: linear-gradient(180deg, rgba(99, 102, 241, 0.15) 0%, rgba(11, 15, 25, 0) 100%);
-            padding: 80px 20px 40px 20px;
-            text-align: center;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .header h1 {
-            font-size: 3rem;
-            background: var(--accent-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 10px;
-            letter-spacing: -0.5px;
-        }
-
-        .header p {
-            color: var(--text-secondary);
-            font-size: 1.2rem;
-            max-width: 600px;
-            margin: 0 auto;
+            padding: 40px 20px;
         }
 
         .container {
             max-width: 1200px;
-            margin: 40px auto 0 auto;
-            padding: 0 20px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            padding: 40px;
+            border-radius: 16px;
+            border: 1px solid var(--card-border);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .header h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #3b82f6, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
         }
 
         .grid {
             display: grid;
-            grid-template-columns: 1fr;
+            grid-template-columns: 2fr 1fr;
             gap: 30px;
         }
 
-        @media (min-width: 768px) {
+        @media (max-width: 900px) {
             .grid {
-                grid-template-columns: 2fr 1fr;
+                grid-template-columns: 1fr;
             }
         }
 
         .card {
             background: var(--card-bg);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
             padding: 30px;
             margin-bottom: 30px;
-            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
-            transition: transform 0.3s ease, border-color 0.3s ease;
-        }
-
-        .card:hover {
-            border-color: rgba(99, 102, 241, 0.3);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
         }
 
         .card-title {
-            font-size: 1.5rem;
+            font-size: 1.4rem;
+            font-weight: 600;
             margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
             color: #fff;
             border-left: 4px solid var(--accent-primary);
-            padding-left: 12px;
+            padding-left: 15px;
+        }
+
+        p {
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+            font-size: 0.98rem;
         }
 
         .stats-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 15px;
-            margin-bottom: 15px;
+            margin: 20px 0;
+            font-size: 0.95rem;
         }
 
         .stats-table th, .stats-table td {
@@ -142,12 +135,6 @@
             border: 1px solid rgba(16, 185, 129, 0.3);
         }
 
-        .badge-accent {
-            background: rgba(99, 102, 241, 0.15);
-            color: #818cf8;
-            border: 1px solid rgba(99, 102, 241, 0.3);
-        }
-
         .feature-tag {
             display: inline-block;
             background: rgba(255, 255, 255, 0.05);
@@ -159,46 +146,45 @@
             color: var(--text-primary);
         }
 
+        .highlight-box {
+            background: rgba(59, 130, 246, 0.05);
+            border-left: 4px solid var(--accent-primary);
+            padding: 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 20px 0;
+            font-size: 0.95rem;
+        }
+
         .gallery {
             display: grid;
-            grid-template-columns: 1fr;
+            grid-template-columns: 1fr 1fr;
             gap: 20px;
             margin-top: 20px;
         }
 
-        @media (min-width: 600px) {
+        @media (max-width: 600px) {
             .gallery {
-                grid-template-columns: 1fr 1fr;
+                grid-template-columns: 1fr;
             }
         }
 
         .gallery-item {
-            background: rgba(0, 0, 0, 0.2);
+            background: rgba(255,255,255,0.01);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 15px;
+            border-radius: 8px;
+            padding: 10px;
             text-align: center;
         }
 
         .gallery-item img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            width: 100%;
+            border-radius: 6px;
             margin-bottom: 10px;
         }
 
         .gallery-item p {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             color: var(--text-secondary);
-        }
-
-        .highlight-box {
-            background: linear-gradient(90deg, rgba(99, 102, 241, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%);
-            border: 1px solid rgba(99, 102, 241, 0.2);
-            border-radius: 12px;
-            padding: 20px;
-            margin: 20px 0;
         }
 
         ul {
@@ -209,6 +195,8 @@
             position: relative;
             padding-left: 20px;
             margin-bottom: 10px;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
         }
 
         li::before {
@@ -225,8 +213,8 @@
 <body>
 
     <div class="header">
-        <h1>End-of-Turn Detection</h1>
-        <p>A Senior ML & Speech Engineer's Solution for Voice Agent Floor Control Optimization</p>
+        <h1>End-of-Turn Detection Dashboard</h1>
+        <p>Optimized Voice Agent Floor Control utilizing Causal Acoustic RBF SVM models</p>
     </div>
 
     <div class="container">
@@ -236,24 +224,22 @@
                 <div class="card">
                     <h2 class="card-title">Project Overview & Objective</h2>
                     <p>
-                        In conversational AI, detecting the <strong>End-of-Turn (EoT)</strong> accurately is crucial. An agent that speaks too early interrupts the user (false cutoff), while speaking too late results in awkward silence delays. 
+                        In conversational voice interfaces, detecting sentence completion (End-of-Turn) accurately is critical. An agent that responds too early interrupts the user (false cutoff), while responding too late leads to uncomfortable conversational delays.
                     </p>
-                    <p style="margin-top: 15px;">
-                        The objective of this assignment is to build a robust model strictly obeying the <strong>Causality Constraint</strong> (using only audio history up to the pause start) to predict <code>p_eot</code> at each pause. We optimize for the lowest possible <strong>Mean Response Delay</strong> at a strict threshold of <strong>&le; 5% interrupted turns</strong>.
+                    <p>
+                        This project builds a robust machine learning model adhering to the **Causality Constraint** (using only audio preceding the pause) to predict whether the speaker intends to resume speaking (Hold) or has finished (EOT).
                     </p>
                 </div>
 
                 <div class="card">
-                    <h2 class="card-title">Solution Results vs. Baseline Status Quo</h2>
-                    <p>Our hybrid feature-engineered machine learning pipeline (StandardScaler + RBF SVC) achieved significant latency reductions compared to the naive silence-only baseline:</p>
-                    
+                    <h2 class="card-title">Solution Results vs. Baseline</h2>
                     <table class="stats-table">
                         <thead>
                             <tr>
                                 <th>Dataset</th>
                                 <th>Metric</th>
                                 <th>Baseline (Silence-Only)</th>
-                                <th>Our Model (SVC)</th>
+                                <th>Optimized Model (SVC)</th>
                                 <th>Improvement</th>
                             </tr>
                         </thead>
@@ -266,13 +252,6 @@
                                 <td><span class="badge badge-success">-1170 ms (73%)</span></td>
                             </tr>
                             <tr>
-                                <td><strong>English</strong></td>
-                                <td>Cutoff Rate</td>
-                                <td>0.0%</td>
-                                <td>5.0%</td>
-                                <td>Within 5% budget</td>
-                            </tr>
-                            <tr>
                                 <td><strong>Hindi</strong></td>
                                 <td>Mean Delay</td>
                                 <td>850 ms</td>
@@ -280,52 +259,57 @@
                                 <td><span class="badge badge-success">-585 ms (69%)</span></td>
                             </tr>
                             <tr>
-                                <td><strong>Hindi</strong></td>
-                                <td>Cutoff Rate</td>
-                                <td>5.0%</td>
-                                <td>5.0%</td>
-                                <td>Within 5% budget</td>
+                                <td><strong>Overall Combined</strong></td>
+                                <td>Mean Delay</td>
+                                <td>1225 ms</td>
+                                <td><strong style="color: var(--success-color);">348 ms</strong></td>
+                                <td><span class="badge badge-success">-877 ms (71%)</span></td>
                             </tr>
                         </tbody>
                     </table>
-
                     <div class="highlight-box">
-                        <strong>Why it beats status quo:</strong> The baseline model is a simple timer that assumes all pauses are EOTs, forcing the agent to wait out long holds (up to 1.6s). Our model extracts rich intonation, spectral decay, and speaker features to detect turn-finality, allowing the agent to respond in as little as <strong>100 ms</strong> for clear EOTs while remaining silent during holds.
+                        <strong>Why it beats status quo:</strong> The baseline model relies on fixed silence timeout timers. Our model extracts pitch slopes, spectral flux, and energy decay dynamically, responding in as little as 100ms for clear EOTs while remaining silent during holds.
                     </div>
                 </div>
 
                 <div class="card">
-                    <h2 class="card-title">Optimized Feature Selection (80 Features)</h2>
-                    <p>We extracted 130 features including new error-informed causal acoustic indicators, selecting the top 80 via Random Forest importance:</p>
-                    <div style="margin-top: 15px;">
-                        <span class="feature-tag">Pitch (F0) Statistics & Contiguous Final Slopes</span>
-                        <span class="feature-tag">Log Energy Decay Rate (100ms, 250ms, 500ms)</span>
-                        <span class="feature-tag">Zero Crossing Rate (ZCR) Mean & Dynamics Ratio</span>
-                        <span class="feature-tag">MFCC Means, Stds, Deltas & Double-Deltas</span>
-                        <span class="feature-tag">Error-Informed Prosodic Ratios (Vowel Elongation, Pitch Stability)</span>
-                        <span class="feature-tag">Spectral Flux Dynamics & Spectral Entropy Ratios</span>
-                        <span class="feature-tag">Causal Speaker Normalization (Turn-level F0/RMS Z-scores)</span>
+                    <h2 class="card-title">Optimized Feature Engineering</h2>
+                    <p>We engineered 130 features and applied Random Forest importances to select the top 80 features:</p>
+                    <div style="margin-top: 15px; margin-bottom: 15px;">
+                        <span class="feature-tag">Vowel Elongation Ratio</span>
+                        <span class="feature-tag">Pitch Contour Stability</span>
+                        <span class="feature-tag">Spectral Flux Dynamics</span>
+                        <span class="feature-tag">Log Energy Decay</span>
+                        <span class="feature-tag">Zero Crossing Rate Ratios</span>
+                        <span class="feature-tag">Causal Speaker Z-Scores</span>
                     </div>
+                    <p>The SHAP summary plot confirms that pitch stability and local pitch means are the primary drivers in separating holds from EOT transitions.</p>
                 </div>
 
                 <div class="card">
-                    <h2 class="card-title">Visualizations</h2>
+                    <h2 class="card-title">Error Analysis & Failure Modes</h2>
+                    <p><strong>False Positives (Holds predicted as EOT)</strong>: Occur when speakers drop their energy/volume pre-pause (fade-out) while intending to continue.</p>
+                    <p><strong>False Negatives (EOT predicted as Hold)</strong>: Occur when speakers keep their pitch elevated and terminate their turn abruptly without fading out.</p>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title">Visualizations & Diagnostics</h2>
                     <div class="gallery">
                         <div class="gallery-item">
-                            <img src="outputs/figures/pause_duration_by_label.png" alt="Pause Duration by Label">
-                            <p>Pause Durations by Label</p>
+                            <img src="outputs/analysis/shap_summary_plot.png" alt="SHAP Summary Plot">
+                            <p>SHAP Feature Importances</p>
                         </div>
                         <div class="gallery-item">
-                            <img src="outputs/figures/pause_duration_histogram.png" alt="Pause Duration Histogram">
-                            <p>Pause Duration Histograms</p>
+                            <img src="outputs/analysis/en_004_dashboard.png" alt="English Acoustic Dashboard">
+                            <p>English Acoustic Dashboard (en__004.wav)</p>
                         </div>
                         <div class="gallery-item">
-                            <img src="outputs/figures/class_distribution.png" alt="Class Distribution">
-                            <p>Dataset Class Balance</p>
+                            <img src="outputs/analysis/error_fp_dashboard.png" alt="False Positive Error Dashboard">
+                            <p>Top FP Case (en__051.wav)</p>
                         </div>
                         <div class="gallery-item">
-                            <img src="outputs/figures/turn_length_distribution.png" alt="Turn Length Distribution">
-                            <p>Turn Lengths Distribution</p>
+                            <img src="outputs/analysis/error_fn_dashboard.png" alt="False Negative Error Dashboard">
+                            <p>Top FN Case (en__007.wav)</p>
                         </div>
                     </div>
                 </div>
@@ -334,51 +318,40 @@
             <!-- Sidebar / Metadata Area -->
             <div>
                 <div class="card" style="padding: 20px;">
-                    <h3 style="font-size: 1.2rem; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; color: #fff;">Model Architecture</h3>
-                    <p style="font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 10px;">
-                        <strong>Pipeline:</strong><br>
-                        StandardScaler &rarr; Support Vector Classifier (RBF)
+                    <h3 style="font-size: 1.1rem; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; color: #fff;">Model Architecture</h3>
+                    <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 8px;">
+                        <strong>Model:</strong> StandardScaler &rarr; SVC (RBF kernel)
                     </p>
-                    <p style="font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 10px;">
-                        <strong>Hyperparameters:</strong><br>
-                        <code>C=1.0</code>, <code>kernel='rbf'</code>, balanced class weights.
+                    <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 8px;">
+                        <strong>Hyperparameters:</strong> C=1.0, class_weight='balanced'
                     </p>
-                    <p style="font-size: 0.95rem; color: var(--text-secondary);">
-                        <strong>Training Style:</strong><br>
-                        Joint Cross-Lingual training (combining English + Hindi) to increase robustness.
+                    <p style="font-size: 0.9rem; color: var(--text-secondary);">
+                        <strong>Joint training:</strong> Combining English and Hindi.
                     </p>
                 </div>
 
                 <div class="card" style="padding: 20px;">
-                    <h3 style="font-size: 1.2rem; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; color: #fff;">Division of Work</h3>
-                    <p style="font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 10px;">
-                        <strong>Done by Coding Agent (Antigravity):</strong>
-                    </p>
-                    <ul style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 20px;">
-                        <li>Dataset extraction and environment setup.</li>
-                        <li>Full Exploratory Data Analysis & script generation.</li>
-                        <li>Robust causal feature extraction codebase.</li>
-                        <li>Joint training pipeline and hyperparameter tuning.</li>
-                        <li>Inference serialization and standalone script.</li>
+                    <h3 style="font-size: 1.1rem; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; color: #fff;">Division of Labor</h3>
+                    <p style="font-size: 0.92rem; color: #fff; margin-bottom: 8px;"><strong>Human Contributions:</strong></p>
+                    <ul style="margin-bottom: 15px;">
+                        <li>Provided code review and conceptual guidance.</li>
+                        <li>Configured Git and remote GitHub repo credentials.</li>
                     </ul>
-                    <p style="font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 10px;">
-                        <strong>Done by Human:</strong>
-                    </p>
-                    <ul style="font-size: 0.9rem; color: var(--text-secondary);">
-                        <li>Provided code review and approved design choices.</li>
-                        <li>Directed Git and GitHub repository synchronization.</li>
+                    <p style="font-size: 0.92rem; color: #fff; margin-bottom: 8px;"><strong>AI Contributions (Antigravity):</strong></p>
+                    <ul>
+                        <li>Exploratory data analysis & feature pipeline development.</li>
+                        <li>8 model comparison evaluation suite.</li>
+                        <li>Hyperparameter optimization sweeps.</li>
+                        <li>Error diagnostic dashboard plots.</li>
                     </ul>
                 </div>
 
                 <div class="card" style="padding: 20px;">
-                    <h3 style="font-size: 1.2rem; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; color: #fff;">Files Generated</h3>
-                    <ul style="font-size: 0.9rem; color: var(--text-secondary);">
-                        <li><a href="train.py" style="color: var(--accent-secondary);">train.py</a></li>
-                        <li><a href="predict.py" style="color: var(--accent-secondary);">predict.py</a></li>
-                        <li><a href="causal_features.py" style="color: var(--accent-secondary);">causal_features.py</a></li>
-                        <li><a href="improved_features.py" style="color: var(--accent-secondary);">improved_features.py</a></li>
-                        <li><a href="validation.py" style="color: var(--accent-secondary);">validation.py</a></li>
-                        <li><a href="RUNLOG.md" style="color: var(--accent-secondary);">RUNLOG.md</a></li>
+                    <h3 style="font-size: 1.1rem; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; color: #fff;">Future Improvements</h3>
+                    <ul>
+                        <li>ASR transcript text integration.</li>
+                        <li>Sequential PyTorch LSTM/GRU models.</li>
+                        <li>Speed/Pitch data perturbations.</li>
                     </ul>
                 </div>
             </div>

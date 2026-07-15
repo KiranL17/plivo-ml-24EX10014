@@ -1,11 +1,33 @@
-# Notes & Model Analysis
+# Model Notes & Architectural Analysis
 
-1. The model uses a Support Vector Classifier (RBF kernel) trained on a rich set of 110 acoustic and prosodic features extracted strictly from the audio preceding the pause.
-2. The key signals leverage temporal energy decay (e.g., energy slope over the last 100ms/500ms), and vocal pitch dynamics (e.g., contiguous pitch slope of the final syllable to capture statement finality).
-3. We also extract spectral shapes (MFCCs, deltas, and double-deltas) and zero-crossing rates to capture unvoiced phonetic closures.
-4. Crucially, turn-level z-score normalization is applied to local pitch and energy features, adapting the model to individual speaker baselines causally.
-5. The model still faces challenges on long pause holds (over 1.5s) where a speaker stops talking without pitch/energy decay, as the classifier might classify it as an EOT and trigger an interruption.
-6. Short EOT pauses also pose a risk if the speaker halts mid-sentence and hangs up abruptly, preventing the model from capturing a clean EOT transition.
-7. With one more day, we would explore data augmentation (e.g., adding noise, speed/pitch perturbation) to increase the size of our small dataset and improve classifier generalization.
-8. We would also implement a sequence-based recurrent or convolutional architecture (such as a 1D CNN-GRU) in PyTorch to model frame-level dynamics directly rather than using hand-crafted window statistics.
-9. Finally, we would experiment with language-specific fine-tuning layers or language embedding features to better capture prosodic differences between English and Hindi.
+## 1. Model Selection & Rationale
+We utilize a **Support Vector Classifier (SVC)** with a non-linear Radial Basis Function (RBF) kernel. Standard scaling is applied to the input vectors to ensure zero mean and unit variance.
+- **Why SVC RBF**: On high-dimensional feature spaces (80 selected features) with a small dataset size (496 total training pauses), non-linear SVMs generalize much better than high-capacity neural networks (which overfit easily) and tree ensembles (which struggle with high-dimensional correlation).
+- **Joint Training**: We train a single cross-lingual model combining English and Hindi to double the training sample size and improve acoustic representation robustness.
+
+---
+
+## 2. Feature Extraction & Selection
+We extract **130 handcrafted causal features** from the historical audio window `[0, pause_start]` preceding each pause:
+- **Pitch Trajectories**: Pitch stats, contiguous final voiced slopes, and normalized pitch.
+- **Energy Dynamics**: Frame-level RMS energy, energy slopes, decay ratios, and local energy variance.
+- **Spectral Shapes**: Zero Crossing Rate (ZCR) mean/std/dynamics, Spectral Centroid, Bandwidth, Rolloff, Flux, and Entropy.
+- **MFCCs**: 13 coefficients + Deltas + Double-Deltas.
+- **Error-Informed Ratios**: Vowel lengthening ratio, F0 stability, ZCR ratio, and spectral flux dynamics ratio.
+- **Causal Normalization**: Local pitch and energy features are causally normalized against turn-level historical baselines.
+
+Using **Random Forest Feature Importance**, we filter out 50 redundant features, training our final pipeline on the **top 80 selected features**.
+
+---
+
+## 3. Failure Modes & Weaknesses
+- **Volumetric Decay in Holds (False Positives)**: If a speaker takes a breath mid-turn and decreases their volume gradually, the model misclassifies it as EOT.
+- **Abrupt EOT Terminations (False Negatives)**: If a speaker terminates a sentence abruptly without pitch/energy decay, the model misclassifies it as a hold continuation.
+
+---
+
+## 4. Next Steps & Future Work
+With more time and budget, we would:
+1. **ASR Multimodal Fusion**: Extract text transcript embeddings to detect grammatical completeness.
+2. **Sequential Causal Models**: Train a causal 1D CNN-LSTM or GRU in PyTorch on frame-level features instead of static averages.
+3. **Acoustic Data Augmentation**: Apply speed perturbation, pitch shifting, and additive background noise to double the dataset size.
