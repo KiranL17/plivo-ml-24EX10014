@@ -36,3 +36,9 @@ This log documents each experimental run, the corresponding scores (mean respons
 - **Hindi Score**: 252 ms (Cutoff: 5.0%, AUC: 0.984, operating point: t=0.50, d=150ms)
 - **Description**: Implemented the modular `FeatureExtractor` class extracting 126 features, adding spectral flux, spectral entropy, and energy variance features. The English delay dropped further to **370 ms**, showing excellent final classifier convergence.
 
+### Run 8: Systematic Error Diagnostics & Analysis
+- **English Score**: 370 ms (4 FPs, 18 FNs)
+- **Hindi Score**: 252 ms (6 FPs, 7 FNs)
+- **Description**: Profiled the best SVM model to isolate top error cases. Identified that False Positives occur during hold pauses when speakers drop energy/volume pre-pause, mimicking EOT. False Negatives occur during true EOTs when speakers keep their pitch elevated (abrupt termination). Recommended phonetic vowel-lengthening and ASR language models for future enhancement.
+
+
