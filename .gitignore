@@ -17,3 +17,7 @@ env/
 # Local outputs
 base.csv
 mine.csv
+base_hindi.csv
+*.csv
+!predictions.csv
+
