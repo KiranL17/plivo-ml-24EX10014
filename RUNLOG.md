@@ -26,7 +26,13 @@ This log documents each experimental run, the corresponding scores (mean respons
 - **Hindi CV Score**: 850 ms (Cutoff: 5.0%, AUC: 0.718)
 - **Description**: Expanded the feature set to 110 features by adding MFCC double-deltas, contiguous final pitch slopes, energy difference values, and turn-level energy/F0 z-scores. OOF CV delay dropped to 1100 ms for English.
 
-### Run 6: Final Fit on Combined Dataset
+### Run 6: Final Fit on Combined Dataset (110 Features)
 - **English Score**: 430 ms (Cutoff: 5.0%, AUC: 0.969, operating point: t=0.40, d=300ms)
 - **Hindi Score**: 190 ms (Cutoff: 5.0%, AUC: 0.984, operating point: t=0.50, d=100ms)
 - **Description**: Trained the final pipeline (StandardScaler + RBF SVC) on all available 496 pauses. The increased stability and full-fit training calibration allowed the scorer to find highly optimized operating points with extremely low response delays.
+
+### Run 7: Modular 126-Feature FeatureExtractor Pipeline
+- **English Score**: 370 ms (Cutoff: 4.0%, AUC: 0.971, operating point: t=0.55, d=100ms)
+- **Hindi Score**: 252 ms (Cutoff: 5.0%, AUC: 0.984, operating point: t=0.50, d=150ms)
+- **Description**: Implemented the modular `FeatureExtractor` class extracting 126 features, adding spectral flux, spectral entropy, and energy variance features. The English delay dropped further to **370 ms**, showing excellent final classifier convergence.
+

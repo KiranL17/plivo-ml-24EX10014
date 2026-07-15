@@ -13,17 +13,20 @@ from sklearn.pipeline import make_pipeline
 from sklearn.model_selection import GroupKFold
 
 from starter.features import load_wav
-from feature_extraction import extract_robust_features
+from causal_features import FeatureExtractor
 from validation import evaluate_predictions
 
 def main():
     base_dir = "C:/Users/lakka/OneDrive/Desktop/plivo assignment"
     languages = ["english", "hindi"]
     
+    extractor = FeatureExtractor()
+    print(f"Feature names to extract: {len(extractor.feature_names)}")
+    
     # 1. Extract features
     data = {}
     for lang in languages:
-        print(f"\nExtracting features for {lang.upper()}...")
+        print(f"\nExtracting features for {lang.upper()} using FeatureExtractor...")
         data_dir = os.path.join(base_dir, "eot_data", lang)
         labels_df = pd.read_csv(os.path.join(data_dir, "labels.csv"))
         
@@ -35,7 +38,8 @@ def main():
                 cache[path] = load_wav(path)
             x, sr = cache[path]
             
-            feat = extract_robust_features(x, sr, float(r["pause_start"]))
+            # Use the modular FeatureExtractor class
+            feat = extractor.extract_features(x, sr, float(r["pause_start"]))
             X.append(feat)
             y.append(1 if r["label"] == "eot" else 0)
             groups.append(f"{lang}_{r['turn_id']}")
@@ -56,9 +60,7 @@ def main():
     # 2. Evaluate Models
     classifiers = {
         "LogisticRegression": LogisticRegression(max_iter=1000, class_weight="balanced", C=0.05),
-        "SVC": SVC(probability=True, class_weight="balanced", C=0.5, kernel="rbf", random_state=42),
-        "RandomForest": RandomForestClassifier(n_estimators=200, max_depth=4, class_weight="balanced", random_state=42),
-        "LightGBM": LGBMClassifier(n_estimators=80, max_depth=3, learning_rate=0.03, class_weight="balanced", random_state=42, verbose=-1)
+        "SVC": SVC(probability=True, class_weight="balanced", C=1.0, kernel="rbf", random_state=42),
     }
     
     gkf = GroupKFold(n_splits=5)

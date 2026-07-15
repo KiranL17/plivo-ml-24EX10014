@@ -7,7 +7,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 from starter.features import load_wav
-from feature_extraction import extract_robust_features
+from causal_features import FeatureExtractor
 
 def main():
     ap = argparse.ArgumentParser()
@@ -32,6 +32,8 @@ def main():
     print(f"Reading labels from {labels_csv}...")
     rows = list(csv.DictReader(open(labels_csv)))
     
+    extractor = FeatureExtractor()
+    
     # 3. Predict for each pause
     cache = {}
     predictions = []
@@ -43,8 +45,8 @@ def main():
             cache[path] = load_wav(path)
         x, sr = cache[path]
         
-        # Extract robust features (exactly matches training feature length of 110)
-        feat = extract_robust_features(x, sr, float(r["pause_start"]))
+        # Extract 126 modular features (exactly matches training feature length)
+        feat = extractor.extract_features(x, sr, float(r["pause_start"]))
         
         # Predict probability for class 1 (EOT)
         prob = pipeline.predict_proba(feat.reshape(1, -1))[0, 1]

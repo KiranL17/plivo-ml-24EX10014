@@ -10,13 +10,14 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import make_pipeline
 
 from starter.features import load_wav
-from feature_extraction import extract_robust_features
+from causal_features import FeatureExtractor
 
 def main():
     base_dir = os.path.dirname(os.path.abspath(__file__))
     languages = ["english", "hindi"]
     
     print("===== Starting Model Training Pipeline =====")
+    extractor = FeatureExtractor()
     
     X_list = []
     y_list = []
@@ -38,8 +39,8 @@ def main():
                 cache[path] = load_wav(path)
             x, sr = cache[path]
             
-            # Extract 110 features
-            feat = extract_robust_features(x, sr, float(r["pause_start"]))
+            # Extract 126 modular features
+            feat = extractor.extract_features(x, sr, float(r["pause_start"]))
             X_list.append(feat)
             y_list.append(1 if r["label"] == "eot" else 0)
             
@@ -49,7 +50,7 @@ def main():
     print(f"\nCombined dataset shape: {X.shape}")
     print(f"Class counts: EOT = {np.sum(y == 1)}, Hold = {np.sum(y == 0)}")
     
-    # Define our best generalizing classifier pipeline
+    # Fit the final regularized pipeline
     print("\nFitting model pipeline (StandardScaler + RBF SVC)...")
     clf = SVC(probability=True, class_weight="balanced", C=1.0, kernel="rbf", random_state=42)
     pipeline = make_pipeline(StandardScaler(), clf)

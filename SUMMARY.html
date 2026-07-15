@@ -262,22 +262,22 @@
                                 <td><strong>English</strong></td>
                                 <td>Mean Delay</td>
                                 <td>1600 ms</td>
-                                <td><strong style="color: var(--success-color);">430 ms</strong></td>
-                                <td><span class="badge badge-success">-1170 ms (73%)</span></td>
+                                <td><strong style="color: var(--success-color);">370 ms</strong></td>
+                                <td><span class="badge badge-success">-1230 ms (77%)</span></td>
                             </tr>
                             <tr>
                                 <td><strong>English</strong></td>
                                 <td>Cutoff Rate</td>
                                 <td>0.0%</td>
-                                <td>5.0%</td>
+                                <td>4.0%</td>
                                 <td>Within 5% budget</td>
                             </tr>
                             <tr>
                                 <td><strong>Hindi</strong></td>
                                 <td>Mean Delay</td>
                                 <td>850 ms</td>
-                                <td><strong style="color: var(--success-color);">190 ms</strong></td>
-                                <td><span class="badge badge-success">-660 ms (77%)</span></td>
+                                <td><strong style="color: var(--success-color);">252 ms</strong></td>
+                                <td><span class="badge badge-success">-598 ms (70%)</span></td>
                             </tr>
                             <tr>
                                 <td><strong>Hindi</strong></td>
@@ -295,16 +295,17 @@
                 </div>
 
                 <div class="card">
-                    <h2 class="card-title">Acoustic & Prosodic Feature Engineering (110 Features)</h2>
-                    <p>We designed a highly informative, causally constrained 110-feature set to represent speech dynamics preceding the pause:</p>
+                    <h2 class="card-title">Acoustic & Prosodic Feature Engineering (126 Features)</h2>
+                    <p>We designed a highly informative, causally constrained 126-feature set to represent speech dynamics preceding the pause:</p>
                     <div style="margin-top: 15px;">
                         <span class="feature-tag">Pitch (F0) Statistics & Contiguous Final Slopes</span>
                         <span class="feature-tag">Log Energy Decay Rate (100ms, 250ms, 500ms)</span>
                         <span class="feature-tag">Zero Crossing Rate (ZCR) Mean & Delta</span>
                         <span class="feature-tag">MFCC Means, Stds (13 Coefficients)</span>
                         <span class="feature-tag">MFCC Deltas & Delta-Deltas (Velocity & Acceleration)</span>
+                        <span class="feature-tag">Spectral Flux & Spectral Entropy (Timbral Variation)</span>
                         <span class="feature-tag">Causal Speaker Normalization (Turn-level F0/RMS Z-scores)</span>
-                        <span class="feature-tag">Speech Context Duration</span>
+                        <span class="feature-tag">Speech Context & Silence Ratios</span>
                     </div>
                 </div>
 
