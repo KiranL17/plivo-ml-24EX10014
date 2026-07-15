@@ -17,7 +17,7 @@ from causal_features import FeatureExtractor
 from validation import evaluate_predictions
 
 def main():
-    base_dir = "C:/Users/lakka/OneDrive/Desktop/plivo assignment"
+    base_dir = os.path.dirname(os.path.abspath(__file__))
     languages = ["english", "hindi"]
     
     extractor = FeatureExtractor()
