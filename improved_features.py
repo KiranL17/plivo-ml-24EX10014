@@ -1,6 +1,6 @@
 import numpy as np
 import librosa
-import scipy.stats
+from typing import List, Dict
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -14,13 +14,21 @@ class ImprovedFeatureExtractor(FeatureExtractor):
     3. Spectral flux dynamics ratio (last 200ms vs context)
     4. ZCR dynamics ratio (last 200ms vs context)
     """
-    def __init__(self, sr=16000, frame_ms=25, hop_ms=10, n_mfcc=13):
+    def __init__(self, sr: int = 16000, frame_ms: float = 25.0, hop_ms: float = 10.0, n_mfcc: int = 13) -> None:
+        """
+        Initialize the ImprovedFeatureExtractor.
+
+        Args:
+            sr (int): Target sample rate (default 16000).
+            frame_ms (float): Frame length in milliseconds (default 25.0).
+            hop_ms (float): Hop length in milliseconds (default 10.0).
+            n_mfcc (int): Number of MFCC coefficients (default 13).
+        """
         super(ImprovedFeatureExtractor, self).__init__(sr=sr, frame_ms=frame_ms, hop_ms=hop_ms, n_mfcc=n_mfcc)
         
-    def _define_feature_names(self):
-        # Inherit all base names
+    def _define_feature_names(self) -> List[str]:
+        """Define alphabetical list of feature names including 4 new error-informed ones."""
         names = super(ImprovedFeatureExtractor, self)._define_feature_names()
-        # Add the 4 new error-informed features
         names.extend([
             "ratio_last_voiced_vs_average_voiced_duration",
             "f0_final_voiced_stability",
@@ -29,12 +37,23 @@ class ImprovedFeatureExtractor(FeatureExtractor):
         ])
         return sorted(names)
         
-    def extract_features(self, x, sr, pause_start):
-        # 1. Base Feature Extraction
+    def extract_features(self, x: np.ndarray, sr: int, pause_start: float) -> np.ndarray:
+        """
+        Extract base and improved causal features from the audio history.
+
+        Args:
+            x (np.ndarray): Full raw audio waveform.
+            sr (int): Sample rate.
+            pause_start (float): The start timestamp of the pause in seconds.
+
+        Returns:
+            np.ndarray: 1D feature array of length 130.
+        """
+        # 1. Base Feature Extraction (extracts 126 features)
         feature_vector = super(ImprovedFeatureExtractor, self).extract_features(x, sr, pause_start)
         
         # Build features dictionary from vector to easily append new values
-        features = dict(zip(self.feature_names, feature_vector))
+        features: Dict[str, float] = dict(zip(self.feature_names, feature_vector))
         
         # Enforce causality strictly
         if sr != self.sr:
@@ -74,11 +93,11 @@ class ImprovedFeatureExtractor(FeatureExtractor):
                 last_block_len = block_lengths[-1]
                 avg_block_len = np.mean(block_lengths) if len(block_lengths) > 0 else 0.0
                 
-                features["ratio_last_voiced_vs_average_voiced_duration"] = last_block_len / (avg_block_len + 1e-6)
+                features["ratio_last_voiced_vs_average_voiced_duration"] = float(last_block_len / (avg_block_len + 1e-6))
                 
                 # Pitch stability of final voiced segment
                 last_block_f0 = f0_full_clean[blocks[-1]]
-                features["f0_final_voiced_stability"] = np.std(last_block_f0) / (np.std(f0_full_clean[f0_full_clean > 0]) + 1e-6)
+                features["f0_final_voiced_stability"] = float(np.std(last_block_f0) / (np.std(f0_full_clean[f0_full_clean > 0]) + 1e-6))
             else:
                 features["ratio_last_voiced_vs_average_voiced_duration"] = 0.0
                 features["f0_final_voiced_stability"] = 0.0
@@ -93,12 +112,12 @@ class ImprovedFeatureExtractor(FeatureExtractor):
         
         # Split into last 200ms (last 20 frames) vs context (prior frames)
         if len(zcr_15s) > 20:
-            features["zcr_ratio_last_200ms_vs_1s"] = np.mean(zcr_15s[-20:]) / (np.mean(zcr_15s[:-20]) + 1e-6)
+            features["zcr_ratio_last_200ms_vs_1s"] = float(np.mean(zcr_15s[-20:]) / (np.mean(zcr_15s[:-20]) + 1e-6))
         else:
             features["zcr_ratio_last_200ms_vs_1s"] = 1.0
             
         if len(flux) > 20:
-            features["flux_ratio_last_200ms_vs_1s"] = np.mean(flux[-20:]) / (np.mean(flux[:-20]) + 1e-6)
+            features["flux_ratio_last_200ms_vs_1s"] = float(np.mean(flux[-20:]) / (np.mean(flux[:-20]) + 1e-6))
         else:
             features["flux_ratio_last_200ms_vs_1s"] = 1.0
             

@@ -1,6 +1,7 @@
 import numpy as np
 import librosa
 import scipy.stats
+from typing import List, Dict, Tuple, Optional
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -13,17 +14,27 @@ class FeatureExtractor:
     - It strictly avoids the current pause's duration (pause_end - pause_start) as using it 
       violates the causality rule (since a live agent cannot know how long a hold pause will last).
     """
-    def __init__(self, sr=16000, frame_ms=25, hop_ms=10, n_mfcc=13):
+    def __init__(self, sr: int = 16000, frame_ms: float = 25.0, hop_ms: float = 10.0, n_mfcc: int = 13) -> None:
+        """
+        Initialize the FeatureExtractor.
+
+        Args:
+            sr (int): Target sample rate (default 16000).
+            frame_ms (float): Frame length in milliseconds (default 25.0).
+            hop_ms (float): Hop length in milliseconds (default 10.0).
+            n_mfcc (int): Number of MFCC coefficients (default 13).
+        """
         self.sr = sr
         self.frame_length = int(sr * frame_ms / 1000)
         self.hop_length = int(sr * hop_ms / 1000)
         self.n_mfcc = n_mfcc
         
-        # Define the exact names of the 120 features extracted
-        self.feature_names = self._define_feature_names()
-        self.num_features = len(self.feature_names)
+        # Define the exact names of the features extracted
+        self.feature_names: List[str] = self._define_feature_names()
+        self.num_features: int = len(self.feature_names)
         
-    def _define_feature_names(self):
+    def _define_feature_names(self) -> List[str]:
+        """Define alphabetical list of feature names to guarantee ordering."""
         names = [
             "total_duration",
             "energy_mean_15s", "energy_std_15s", "energy_max_15s", "energy_min_15s",
@@ -52,7 +63,8 @@ class FeatureExtractor:
             ])
         return sorted(names)
         
-    def _fit_slope(self, y):
+    def _fit_slope(self, y: np.ndarray) -> float:
+        """Helper to fit a linear regression slope over a 1D array."""
         n = len(y)
         if n < 2:
             return 0.0
@@ -60,10 +72,11 @@ class FeatureExtractor:
         slope, _, _, _, _ = scipy.stats.linregress(x, y)
         return float(slope)
         
-    def _get_last_voiced_segment(self, f0_contour):
+    def _get_last_voiced_segment(self, f0_contour: np.ndarray) -> Tuple[np.ndarray, float]:
+        """Isolate the final contiguous voiced segment of the pitch contour."""
         voiced_indices = np.where(f0_contour > 0)[0]
         if len(voiced_indices) == 0:
-            return np.array([])
+            return np.array([]), 0.0
         diffs = np.diff(voiced_indices)
         split_indices = np.where(diffs > 1)[0]
         if len(split_indices) == 0:
@@ -72,9 +85,17 @@ class FeatureExtractor:
             last_block = voiced_indices[split_indices[-1] + 1:]
         return f0_contour[last_block], len(last_block) * (self.hop_length / self.sr)
 
-    def extract_features(self, x, sr, pause_start):
+    def extract_features(self, x: np.ndarray, sr: int, pause_start: float) -> np.ndarray:
         """
         Extract causal acoustic and prosodic features from the audio history.
+
+        Args:
+            x (np.ndarray): Full raw audio waveform.
+            sr (int): Target sample rate.
+            pause_start (float): The start timestamp of the pause in seconds.
+
+        Returns:
+            np.ndarray: 1D feature array aligned with self.feature_names.
         """
         # Ensure sample rate match
         if sr != self.sr:
@@ -93,7 +114,7 @@ class FeatureExtractor:
         seg_15s = x_past[-int(1.5 * sr):] if len(x_past) >= int(1.5 * sr) else x_past
         seg_05s = x_past[-int(0.5 * sr):] if len(x_past) >= int(0.5 * sr) else x_past
         
-        features = {}
+        features: Dict[str, float] = {}
         
         # Feature 1: Total speech context duration in seconds
         features["total_duration"] = len(x_past) / sr
@@ -105,33 +126,33 @@ class FeatureExtractor:
         rms_05s = librosa.feature.rms(y=seg_05s, frame_length=self.frame_length, hop_length=self.hop_length)[0]
         rms_db_05s = 20 * np.log10(rms_05s + 1e-12)
         
-        features["energy_mean_15s"] = np.mean(rms_db_15s)
-        features["energy_std_15s"] = np.std(rms_db_15s)
-        features["energy_max_15s"] = np.max(rms_db_15s)
-        features["energy_min_15s"] = np.min(rms_db_15s)
+        features["energy_mean_15s"] = float(np.mean(rms_db_15s))
+        features["energy_std_15s"] = float(np.std(rms_db_15s))
+        features["energy_max_15s"] = float(np.max(rms_db_15s))
+        features["energy_min_15s"] = float(np.min(rms_db_15s))
         
-        features["energy_mean_05s"] = np.mean(rms_db_05s)
-        features["energy_std_05s"] = np.std(rms_db_05s)
-        features["energy_mean_100ms"] = np.mean(rms_db_15s[-10:]) if len(rms_db_15s) >= 10 else np.mean(rms_db_15s)
-        features["energy_mean_250ms"] = np.mean(rms_db_15s[-25:]) if len(rms_db_15s) >= 25 else np.mean(rms_db_15s)
+        features["energy_mean_05s"] = float(np.mean(rms_db_05s))
+        features["energy_std_05s"] = float(np.std(rms_db_05s))
+        features["energy_mean_100ms"] = float(np.mean(rms_db_15s[-10:])) if len(rms_db_15s) >= 10 else float(np.mean(rms_db_15s))
+        features["energy_mean_250ms"] = float(np.mean(rms_db_15s[-25:])) if len(rms_db_15s) >= 25 else float(np.mean(rms_db_15s))
         
         # Energy Slopes & Variations
         features["energy_slope_last_10"] = self._fit_slope(rms_db_15s[-10:])
         features["energy_slope_last_25"] = self._fit_slope(rms_db_15s[-25:])
         features["energy_slope_last_50"] = self._fit_slope(rms_db_15s[-50:]) if len(rms_db_15s) >= 50 else self._fit_slope(rms_db_15s)
         
-        features["energy_diff_100ms_vs_500ms"] = features["energy_mean_100ms"] - (np.mean(rms_db_15s[-50:]) if len(rms_db_15s) >= 50 else np.mean(rms_db_15s))
-        features["energy_ratio_last_200ms_vs_1s"] = np.mean(rms_db_15s[-20:]) - np.mean(rms_db_15s[:-20]) if len(rms_db_15s) > 20 else 0.0
-        features["energy_local_variance"] = np.var(rms_db_05s)
+        features["energy_diff_100ms_vs_500ms"] = features["energy_mean_100ms"] - (float(np.mean(rms_db_15s[-50:])) if len(rms_db_15s) >= 50 else float(np.mean(rms_db_15s)))
+        features["energy_ratio_last_200ms_vs_1s"] = float(np.mean(rms_db_15s[-20:])) - float(np.mean(rms_db_15s[:-20])) if len(rms_db_15s) > 20 else 0.0
+        features["energy_local_variance"] = float(np.var(rms_db_05s))
         
         # Silence ratio (ratio of silent frames below -45dB in the last 1.5s)
-        features["silence_ratio_15s"] = np.mean(rms_db_15s < -45)
+        features["silence_ratio_15s"] = float(np.mean(rms_db_15s < -45))
         
         # 3. Zero Crossing Rate (ZCR)
         zcr_15s = librosa.feature.zero_crossing_rate(y=seg_15s, frame_length=self.frame_length, hop_length=self.hop_length)[0]
-        features["zcr_mean_15s"] = np.mean(zcr_15s)
-        features["zcr_std_15s"] = np.std(zcr_15s)
-        features["zcr_mean_05s"] = np.mean(zcr_15s[-50:]) if len(zcr_15s) >= 50 else np.mean(zcr_15s)
+        features["zcr_mean_15s"] = float(np.mean(zcr_15s))
+        features["zcr_std_15s"] = float(np.std(zcr_15s))
+        features["zcr_mean_05s"] = float(np.mean(zcr_15s[-50:])) if len(zcr_15s) >= 50 else float(np.mean(zcr_15s))
         features["zcr_slope_last_15"] = self._fit_slope(zcr_15s[-15:])
         
         # 4. Pitch (F0) tracking (YIN)
@@ -150,15 +171,15 @@ class FeatureExtractor:
             last_voiced_seg, last_voiced_dur = self._get_last_voiced_segment(f0_clean)
             
             if len(voiced_f0) > 0:
-                features["f0_mean"] = np.mean(voiced_f0)
-                features["f0_std"] = np.std(voiced_f0)
-                features["f0_max"] = np.max(voiced_f0)
-                features["f0_min"] = np.min(voiced_f0)
-                features["f0_variance"] = np.var(voiced_f0)
-                features["f0_last_voiced_mean"] = np.mean(voiced_f0[-5:])
+                features["f0_mean"] = float(np.mean(voiced_f0))
+                features["f0_std"] = float(np.std(voiced_f0))
+                features["f0_max"] = float(np.max(voiced_f0))
+                features["f0_min"] = float(np.min(voiced_f0))
+                features["f0_variance"] = float(np.var(voiced_f0))
+                features["f0_last_voiced_mean"] = float(np.mean(voiced_f0[-5:]))
                 features["f0_last_voiced_slope"] = self._fit_slope(voiced_f0[-10:])
                 features["voicing_ratio"] = len(voiced_f0) / len(f0_clean)
-                features["voicing_ratio_last_05s"] = np.mean(f0_clean[-50:] > 0) if len(f0_clean) >= 50 else features["voicing_ratio"]
+                features["voicing_ratio_last_05s"] = float(np.mean(f0_clean[-50:] > 0)) if len(f0_clean) >= 50 else features["voicing_ratio"]
                 features["last_voiced_segment_duration"] = last_voiced_dur
             else:
                 features["f0_mean"] = 0.0
@@ -192,8 +213,8 @@ class FeatureExtractor:
         # 5. Causal Speaker Normalization
         rms_full = librosa.feature.rms(y=x_past, frame_length=self.frame_length, hop_length=self.hop_length)[0]
         rms_db_full = 20 * np.log10(rms_full + 1e-12)
-        turn_energy_mean = np.mean(rms_db_full)
-        turn_energy_std = np.std(rms_db_full) + 1e-6
+        turn_energy_mean = float(np.mean(rms_db_full))
+        turn_energy_std = float(np.std(rms_db_full)) + 1e-6
         
         features["energy_normalized_last_05s"] = (features["energy_mean_05s"] - turn_energy_mean) / turn_energy_std
         features["energy_normalized_last_100ms"] = (features["energy_mean_100ms"] - turn_energy_mean) / turn_energy_std
@@ -209,8 +230,8 @@ class FeatureExtractor:
             voiced_full_f0 = f0_full_clean[f0_full_clean > 0]
             
             if len(voiced_full_f0) > 0 and features["f0_mean"] > 0:
-                turn_f0_mean = np.mean(voiced_full_f0)
-                turn_f0_std = np.std(voiced_full_f0) + 1e-6
+                turn_f0_mean = float(np.mean(voiced_full_f0))
+                turn_f0_std = float(np.std(voiced_full_f0)) + 1e-6
                 features["f0_normalized_mean"] = (features["f0_mean"] - turn_f0_mean) / turn_f0_std
                 features["f0_normalized_last_voiced_mean"] = (features["f0_last_voiced_mean"] - turn_f0_mean) / turn_f0_std
                 features["f0_normalized_max"] = (features["f0_max"] - turn_f0_mean) / turn_f0_std
@@ -240,17 +261,17 @@ class FeatureExtractor:
         S_norm = S_power / (np.sum(S_power, axis=0, keepdims=True) + 1e-12)
         entropy = -np.sum(S_norm * np.log2(S_norm + 1e-12), axis=0)
         
-        features["spectral_flux_mean"] = np.mean(flux) if len(flux) > 0 else 0.0
-        features["spectral_flux_std"] = np.std(flux) if len(flux) > 0 else 0.0
-        features["spectral_entropy_mean"] = np.mean(entropy)
-        features["spectral_entropy_std"] = np.std(entropy)
+        features["spectral_flux_mean"] = float(np.mean(flux)) if len(flux) > 0 else 0.0
+        features["spectral_flux_std"] = float(np.std(flux)) if len(flux) > 0 else 0.0
+        features["spectral_entropy_mean"] = float(np.mean(entropy))
+        features["spectral_entropy_std"] = float(np.std(entropy))
         
-        features["spectral_centroid_mean"] = np.mean(centroid)
-        features["spectral_centroid_std"] = np.std(centroid)
-        features["spectral_bandwidth_mean"] = np.mean(bandwidth)
-        features["spectral_bandwidth_std"] = np.std(bandwidth)
-        features["spectral_rolloff_mean"] = np.mean(rolloff)
-        features["spectral_rolloff_std"] = np.std(rolloff)
+        features["spectral_centroid_mean"] = float(np.mean(centroid))
+        features["spectral_centroid_std"] = float(np.std(centroid))
+        features["spectral_bandwidth_mean"] = float(np.mean(bandwidth))
+        features["spectral_bandwidth_std"] = float(np.std(bandwidth))
+        features["spectral_rolloff_mean"] = float(np.mean(rolloff))
+        features["spectral_rolloff_std"] = float(np.std(rolloff))
         
         # 7. MFCCs + Deltas + Double Deltas
         mfccs = librosa.feature.mfcc(y=seg_15s, sr=sr, n_mfcc=self.n_mfcc, n_fft=self.frame_length, hop_length=self.hop_length)
@@ -258,16 +279,16 @@ class FeatureExtractor:
         mfcc_delta2s = librosa.feature.delta(mfccs, order=2)
         
         for i in range(self.n_mfcc):
-            features[f"mfcc_mean_{i}"] = np.mean(mfccs[i])
-            features[f"mfcc_std_{i}"] = np.std(mfccs[i])
-            features[f"mfcc_delta_mean_{i}"] = np.mean(mfcc_deltas[i])
-            features[f"mfcc_delta_std_{i}"] = np.std(mfcc_deltas[i])
-            features[f"mfcc_delta2_mean_{i}"] = np.mean(mfcc_delta2s[i])
-            features[f"mfcc_delta2_std_{i}"] = np.std(mfcc_delta2s[i])
+            features[f"mfcc_mean_{i}"] = float(np.mean(mfccs[i]))
+            features[f"mfcc_std_{i}"] = float(np.std(mfccs[i]))
+            features[f"mfcc_delta_mean_{i}"] = float(np.mean(mfcc_deltas[i]))
+            features[f"mfcc_delta_std_{i}"] = float(np.std(mfcc_deltas[i]))
+            features[f"mfcc_delta2_mean_{i}"] = float(np.mean(mfcc_delta2s[i]))
+            features[f"mfcc_delta2_std_{i}"] = float(np.std(mfcc_delta2s[i]))
             
         # 8. Align keys to define feature names list and compile array
         feature_vector = np.zeros(self.num_features, dtype=np.float32)
         for idx, k in enumerate(self.feature_names):
-            feature_vector[idx] = features.get(k, 0.0) # Handle potential missing keys safely
+            feature_vector[idx] = features.get(k, 0.0)
             
         return feature_vector

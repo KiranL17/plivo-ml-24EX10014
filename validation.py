@@ -1,20 +1,28 @@
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import GroupKFold
-from sklearn.linear_model import LogisticRegression
+from typing import List, Dict, Tuple, Any
+from sklearn.base import BaseEstimator
 
-TIMEOUT_S = 1.6
-THRESHOLDS = np.round(np.arange(0.05, 1.0, 0.05), 3)
-DELAYS = np.round(np.arange(0.10, 1.65, 0.05), 3)
+TIMEOUT_S: float = 1.6
+THRESHOLDS: np.ndarray = np.round(np.arange(0.05, 1.0, 0.05), 3)
+DELAYS: np.ndarray = np.round(np.arange(0.10, 1.65, 0.05), 3)
 
-def evaluate_predictions(pauses_df, predictions, budget=0.05):
+def evaluate_predictions(pauses_df: pd.DataFrame, predictions: np.ndarray, budget: float = 0.05) -> Dict[str, Any]:
     """
-    Given a DataFrame of pauses and a corresponding array of predictions (p_eot),
-    sweep thresholds and delays to find the operating point that minimizes mean delay
-    subject to the budget constraint on interrupted turns.
+    Given a DataFrame of pauses and predictions (p_eot), sweep thresholds and delays 
+    to find the operating point that minimizes mean delay subject to the budget 
+    constraint on interrupted turns.
+
+    Args:
+        pauses_df (pd.DataFrame): DataFrame of pauses with turn_id, pause_start, pause_end, label.
+        predictions (np.ndarray): 1D array of EOT probabilities.
+        budget (float): Strict upper bound budget of interrupted turns (default 0.05).
+
+    Returns:
+        Dict[str, Any]: Best operational metrics (latency, cutoff, threshold, delay, auc).
     """
-    # Align predictions with pauses_df
-    pauses = []
+    pauses: List[Dict[str, Any]] = []
     for idx, row in pauses_df.iterrows():
         pauses.append({
             "turn_id": row["turn_id"],
@@ -60,10 +68,28 @@ def evaluate_predictions(pauses_df, predictions, budget=0.05):
     
     return best
 
-def run_group_kfold_cv(clf, X, y, groups, labels_df, n_splits=5):
+def run_group_kfold_cv(
+    clf: BaseEstimator, 
+    X: np.ndarray, 
+    y: np.ndarray, 
+    groups: np.ndarray, 
+    labels_df: pd.DataFrame, 
+    n_splits: int = 5
+) -> Tuple[Dict[str, Any], np.ndarray]:
     """
     Run GroupKFold cross-validation, get out-of-fold predictions,
-    and compute the out-of-fold score.
+    and compute the out-of-fold validation scores.
+
+    Args:
+        clf (BaseEstimator): Scikit-learn estimator classifier to evaluate.
+        X (np.ndarray): 2D feature array.
+        y (np.ndarray): 1D target label array.
+        groups (np.ndarray): 1D array representing grouping keys (e.g. speaker/turn-id).
+        labels_df (pd.DataFrame): DataFrame of pauses for evaluation alignment.
+        n_splits (int): Cross-validation folds count (default 5).
+
+    Returns:
+        Tuple[Dict[str, Any], np.ndarray]: Dict of scoring metrics and out-of-fold predictions.
     """
     gkf = GroupKFold(n_splits=n_splits)
     oof_preds = np.zeros(len(y))
